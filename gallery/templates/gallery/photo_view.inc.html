@@ -1,0 +1,12 @@
+{% load i18n thumbnail %}
+{% if photo.is_visible %}
+<h2>{{ photo }}</h2>
+<div class="gallery-photo-view">
+    <a href="{{ photo.image.url }}" target="_blank" title="{{ photo }}"><img src="{% thumbnail photo.image photo_size crop %}" alt="{{ photo }}"></a>
+    {% if photo.caption %}
+    <div class="photo-caption">{{ photo.caption|linebreaks }}<div>
+    {% endif %}
+</div>
+{% endif %}
+
+

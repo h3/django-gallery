@@ -1,0 +1,6 @@
+{% load thumbnail %}
+{% if photo.is_visible %}
+<div class="gallery-photo-mini-thumbnail">
+    <a href="{{ photo.get_absolute_url }}"><img src="{% thumbnail photo.image mini_thumb_size crop %}" alt="{{ photo }}"></a>
+</div>
+{% endif %}

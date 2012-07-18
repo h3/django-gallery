@@ -1,0 +1,60 @@
+{% extends "gallery/gallery_base.html" %}
+{% load i18n %}
+
+{% block app.title %}{{ photo.title }} / {{ photo.gallery }} / {% trans "Photo galleries" %} / {% endblock %}
+
+{% block app.sidebar %}
+<h2>{% trans "Photo Galleries" %}</h2>
+<ul class="gallery-menu">
+    {% for gallery in gallery_list %}
+    {% if gallery.id == photo.gallery.id %}
+    <li><span>{{ gallery }}</span></li>
+    {% else %}
+    <li><a href="{{ gallery.get_absolute_url }}">{{ gallery }}</a></li>
+    {% endif %}
+    {% endfor %}
+</ul>
+<hr class="space">
+<div class="span-3">
+    {% if photo.get_previous_in_gallery %}
+    <h2>{% trans "Previous" %}</h2>
+    {% with photo=photo.get_previous_in_gallery %}
+    {% include "gallery/photo_mini_thumbnail.inc.html" %}
+    {% endwith%}
+    {% endif %}
+</div>
+<div class="span-3">
+    {% if photo.get_next_in_gallery %}
+    <h2>{% trans "Next" %}</h2>
+    {% with photo=photo.get_next_in_gallery %}
+    {% include "gallery/photo_mini_thumbnail.inc.html" %}
+    {% endwith%}
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block content %}
+<div class="gallery-photo-detail">
+    <h1>{% trans "Photo Details" %}</h1>
+    <ul class="breadcrumbs clearfix">
+        <li><a href="/">{% trans "Home" %}</a></li>
+        <li><a href="{% url gallery-list %}">{% trans "Galleries" %}</a></li>
+        <li><a href="{{ photo.gallery.get_absolute_url }}">{{ photo.gallery }}</a></li>
+        <li><span>{{ photo.title }}</span></li>
+    </ul>
+    <div class="photo-prev span-3">
+        {% if photo.get_previous_in_gallery %}
+        <a href="{{ photo.get_previous_in_gallery.get_absolute_url }}">&laquo; {% trans "Previous" %}</a>
+        {% endif %}
+    </div>
+    <div class="photo-next span-3">
+        {% if photo.get_next_in_gallery %}
+        <a href="{{ photo.get_next_in_gallery.get_absolute_url }}">{% trans "Next" %} &raquo;</a>
+        {% endif %}
+    </div>
+    <div class="center">
+        {% include "gallery/photo_view.inc.html" %}
+    </div>
+</div>
+{% endblock %}

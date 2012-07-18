@@ -1,0 +1,33 @@
+{% extends "gallery/gallery_base.html" %}
+{% load i18n %}
+
+{% block app.title %}{% trans "Photo galleries" %} / {% endblock %}
+
+{% block app.sidebar %}
+<h3>{% trans "Recent photos" %}</h3>
+{% for photo in recent_photos %}
+    {% include "gallery/photo_mini_thumbnail.inc.html" %}
+{% endfor %}
+{% endblock %}
+
+{% block app.content %}
+<h1>{% trans "Photo galleries" %}</h1>
+<div class="gallery-list">
+    {% for gallery in object_list %}
+    {% if gallery.is_visible and gallery.photo_set.all %}
+    <div class="{% cycle odd,even %} gallery-list-row{% if forloop.last %} last{% endif %}{% if forloop.first %} first{% endif %}">
+        <h2><a href="{{ gallery.get_absolute_url }}">{{ gallery }}</a></h2>
+        <small class="gallery-count">{% blocktrans count count=gallery.photo_set.all|length %}One photo{% plural %}{{ count }} photos{% endblocktrans %}</small>
+        {% if gallery.description %}
+        <div class="gallery-description">{{ gallery.description|linebreaks|truncatewords:"20" }}</div>
+        {% endif %}
+        <div class="gallery-preview clearfix">
+            {% for photo in gallery.get_random_photos|slice:"0:5" %}
+            {% include "gallery/photo_mini_thumbnail.inc.html" %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+</div>
+{% endblock %}

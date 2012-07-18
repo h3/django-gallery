@@ -1,0 +1,39 @@
+{% extends "gallery/gallery_base.html" %}
+{% load i18n %}
+
+{% block app.title %}{{ object.title }} / {% trans "Photo galleries" %} / {% endblock %}
+
+{% block app.sidebar %}
+<h2>{% trans "Photo Galleries" %}</h2>
+<ul class="gallery-menu">
+    {% for gallery in gallery_list %}
+    {% if gallery.id == object.id %}
+    <li><span>{{ gallery }}</span></li>
+    {% else %}
+    <li><a href="{{ gallery.get_absolute_url }}">{{ gallery }}</a></li>
+    {% endif %}
+    {% endfor %}
+</ul>
+{% endblock %}
+
+{% block content %}
+<h1>{% trans "Photo Gallery" %}</h1>
+<ul class="breadcrumbs clearfix">
+    <li><a href="/">{% trans "Home" %}</a></li>
+    <li><a href="{% url gallery-list %}">{% trans "Photo galleries" %}</a></li>
+    <li><span>{{ object.title }}</span></li>
+</ul>
+<h2>{{ object }}</h2>
+
+{% if object.description %}
+<div class="gallery-description">{{ object.description|linebreaks }}</div>
+{% endif %}
+
+{% if object.photo_set.all %}
+<div class="gallery-photos-list">
+    {% for photo in object.photo_set.all %}
+    {% include "gallery/photo_thumbnail.inc.html" %}
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

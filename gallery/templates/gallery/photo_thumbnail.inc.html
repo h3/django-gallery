@@ -1,0 +1,7 @@
+{% load thumbnail %}
+{% if photo.is_visible %}
+<div class="gallery-photo-thumbnail">
+    <a href="{{ photo.get_absolute_url }}"><img src="{% thumbnail photo.image thumb_size crop %}" alt="{{ photo }}"></a>
+    <h3>{{ photo.title}}</h3>
+</div>
+{% endif %}
