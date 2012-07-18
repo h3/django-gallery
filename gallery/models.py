@@ -11,13 +11,8 @@ from django.core.files.base import ContentFile
 from easy_thumbnails.fields import ThumbnailerImageField
 
 
-try:
-    from webcore.utils.storage import file_cleanup
-except:
-    from core.utils import file_cleanup
-
-STORAGE_PATH = getattr(settings, 'GALLERY_STORAGE_PATH', 'uploads/gallery/')
-AUTO_CLEANUP = getattr(settings, 'GALLERY_AUTO_CLEANUP', True)
+STORAGE_PATH  = getattr(settings, 'GALLERY_STORAGE_PATH', 'uploads/gallery/')
+AUTO_CLEANUP  = getattr(settings, 'GALLERY_AUTO_CLEANUP', True)
 SOURCE_RESIZE = getattr(settings, 'GALLERY_PHOTO_SOURCE_RESIZE', (1600, 1200))
 
 NAME_LENGTH = 250
@@ -57,7 +52,7 @@ class Photo(models.Model):
     caption    = models.TextField(_('Caption'), blank=True)
     gallery    = models.ForeignKey(Gallery, null=True, blank=True)
     #image      = models.ImageField(_('Image'), upload_to=STORAGE_PATH)
-    image      = ThumbnailerImageField(_('Image'), upload_to=STORAGE_PATH, resize_source=dict(size=SOURCE_RESIZE, sharpen=True))
+    image      = ThumbnailerImageField(_('Image'), upload_to=STORAGE_PATH, resize_source=dict(size=SOURCE_RESIZE))
     is_visible = models.BooleanField(_('Visible on website'), default=True)
     date_created = models.DateTimeField(_('Date created'), auto_now_add=True)
 
@@ -92,6 +87,7 @@ class Photo(models.Model):
 
 if AUTO_CLEANUP:
     from django.db.models.signals import post_delete
+    from gallery.utils import file_cleanup
     post_delete.connect(file_cleanup, sender=Photo, dispatch_uid="photo.file_cleanup")
 
 
