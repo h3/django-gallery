@@ -6,9 +6,9 @@ Simple gallery system for django.
 Installation
 ------------
 
- 1. In your `settings.py`, add `gallery` to your `INSTALLED_APPS`.
- 2. Add `('gallery/', include('gallery.urls')),` to your `urls.py`
- 3. Sync your database
+1. In your `settings.py`, add `gallery` to your `INSTALLED_APPS`.
+2. Add `('gallery/', include('gallery.urls')),` to your `urls.py`
+3. Sync your database
 
 
 Credits
