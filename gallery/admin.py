@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from django.conf import settings
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 from easy_thumbnails.files import get_thumbnailer
 from gallery.models import *
+from gallery.conf import settings
 
 try:
     from grappellifit.admin import TranslationAdmin
