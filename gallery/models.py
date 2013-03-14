@@ -3,24 +3,18 @@ import zipfile
 import Image
 
 from django.db import models
-from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import smart_str, force_unicode
 from django.core.urlresolvers import reverse
 from django.core.files.base import ContentFile
+
+from gallery.conf import settings
 from easy_thumbnails.fields import ThumbnailerImageField
 
 
-STORAGE_PATH  = getattr(settings, 'GALLERY_STORAGE_PATH', 'uploads/gallery/')
-AUTO_CLEANUP  = getattr(settings, 'GALLERY_AUTO_CLEANUP', True)
-SOURCE_RESIZE = getattr(settings, 'GALLERY_PHOTO_SOURCE_RESIZE', (1600, 1200))
-
-NAME_LENGTH = 250
-
-
 class Gallery(models.Model):
-    title = models.CharField(_('Title'), max_length=NAME_LENGTH, unique=True)
-    slug = models.SlugField(_('Slug'), max_length=NAME_LENGTH, unique=True, help_text=_('A "slug" is a unique URL-friendly title for an object.'))
+    title = models.CharField(_('Title'), max_length=settings.NAME_FIELD_MAX_LENGTH, unique=True)
+    slug = models.SlugField(_('Slug'), max_length=settings.NAME_FIELD_MAX_LENGTH, unique=True, help_text=_('A "slug" is a unique URL-friendly title for an object.'))
     description = models.TextField(_('Description'), blank=True)
     is_visible = models.BooleanField(_('Is visible'), default=True, help_text=_('If true, the gallery will be displayed on the website'))
     date_created = models.DateTimeField(_('Date created'), auto_now_add=True)
@@ -47,12 +41,11 @@ class Gallery(models.Model):
 
 
 class Photo(models.Model):
-    title      = models.CharField(_('Photo'),max_length=NAME_LENGTH, unique=True)
-    slug       = models.SlugField(_('Slug'),max_length=NAME_LENGTH, unique=True, help_text=_('A "slug" is a unique URL-friendly title for an object.'))
+    title      = models.CharField(_('Photo'),max_length=settings.NAME_FIELD_MAX_LENGTH, unique=True)
+    slug       = models.SlugField(_('Slug'),max_length=settings.NAME_FIELD_MAX_LENGTH, unique=True, help_text=_('A "slug" is a unique URL-friendly title for an object.'))
     caption    = models.TextField(_('Caption'), blank=True)
     gallery    = models.ForeignKey(Gallery, null=True, blank=True)
-    #image      = models.ImageField(_('Image'), upload_to=STORAGE_PATH)
-    image      = ThumbnailerImageField(_('Image'), upload_to=STORAGE_PATH, resize_source=dict(size=SOURCE_RESIZE))
+    image      = ThumbnailerImageField(_('Image'), upload_to=settings.STORAGE_PATH, resize_source=dict(size=settings.SOURCE_RESIZE))
     is_visible = models.BooleanField(_('Visible on website'), default=True)
     date_created = models.DateTimeField(_('Date created'), auto_now_add=True)
 
@@ -85,7 +78,7 @@ class Photo(models.Model):
         verbose_name_plural = _('Photos')
         get_latest_by = 'date_created'
 
-if AUTO_CLEANUP:
+if settings.AUTO_CLEANUP:
     from django.db.models.signals import post_delete
     from gallery.utils import file_cleanup
     post_delete.connect(file_cleanup, sender=Photo, dispatch_uid="photo.file_cleanup")
@@ -93,12 +86,12 @@ if AUTO_CLEANUP:
 
 class Zip(models.Model):
     title = models.CharField(_('Title'), max_length=75, help_text=_('All photos in the gallery will be given a title made up of the gallery title + a sequential number.'))
-    slug = models.CharField(_('Slug'),max_length=NAME_LENGTH, unique=True, help_text=_('A "slug" is a unique URL-friendly title for an object.'))
+    slug = models.CharField(_('Slug'),max_length=settings.NAME_FIELD_MAX_LENGTH, unique=True, help_text=_('A "slug" is a unique URL-friendly title for an object.'))
     description = models.TextField(_('Description'), blank=True)
     caption = models.TextField(_('Caption'), blank=True)
     visible = models.BooleanField(_('Is visible'), default=True, help_text=_('If true, the photo will be display in de view'))
     gallery = models.ForeignKey(Gallery, null=True, blank=True, help_text=_('Select the gallery that the Photo have to be link '))
-    zip_file = models.FileField(_('images file (.zip)'), upload_to=STORAGE_PATH+"/tmp",help_text=_('Select a .zip file of images to upload into a new Gallery.'))
+    zip_file = models.FileField(_('images file (.zip)'), upload_to=settings.STORAGE_PATH+"/tmp",help_text=_('Select a .zip file of images to upload into a new Gallery.'))
 
     def save(self, *args, **kwargs):
         super(Zip, self).save(*args, **kwargs) 
