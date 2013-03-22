@@ -7,6 +7,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import smart_str, force_unicode
 from django.core.urlresolvers import reverse
 from django.core.files.base import ContentFile
+from django.template.defaultfilters import slugify
 
 from gallery.conf import settings
 from easy_thumbnails.fields import ThumbnailerImageField
