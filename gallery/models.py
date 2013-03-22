@@ -1,15 +1,17 @@
 import os
 import zipfile
 import Image
+import shutil
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import smart_str, force_unicode
 from django.core.urlresolvers import reverse
 from django.core.files.base import ContentFile
+from django.template.defaultfilters import slugify
 
 from gallery.conf import settings
-from easy_thumbnails.fields import ThumbnailerImageField
+from easy_thumbnails.files import get_thumbnailer
 
 
 class Gallery(models.Model):
@@ -45,9 +47,25 @@ class Photo(models.Model):
     slug       = models.SlugField(_('Slug'),max_length=settings.NAME_FIELD_MAX_LENGTH, unique=True, help_text=_('A "slug" is a unique URL-friendly title for an object.'))
     caption    = models.TextField(_('Caption'), blank=True)
     gallery    = models.ForeignKey(Gallery, null=True, blank=True)
-    image      = ThumbnailerImageField(_('Image'), upload_to=settings.STORAGE_PATH, resize_source=dict(size=settings.SOURCE_RESIZE))
+    image      = models.ImageField(_('Image'), upload_to=settings.STORAGE_PATH)
     is_visible = models.BooleanField(_('Visible on website'), default=True)
     date_created = models.DateTimeField(_('Date created'), auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        super(Photo, self).save(*args, **kwargs)
+        if settings.SOURCE_RESIZE is not None:
+            img = open(self.image.path)
+            thumbnailer = get_thumbnailer(img, relative_name=self.image.name)
+            if type(settings.SOURCE_RESIZE) is tuple:
+                thumbnail_options = {'size': settings.SOURCE_RESIZE, 'save': True}
+            else:
+                thumbnail_options = settings.SOURCE_RESIZE
+            
+            thumb = thumbnailer.get_thumbnail(thumbnail_options)
+            # Ok children, it's bed time
+            dest = self.image.path
+            os.remove(dest) #  This is to make sure we leave nothing behind (ex: filename changes)
+            shutil.move(thumb.path, dest)
 
     def get_absolute_url(self):
         return reverse('gallery-photo-detail', args=[self.gallery.slug, self.slug])
@@ -100,63 +118,43 @@ class Zip(models.Model):
         return gallery
 
     def process_zipfile(self):
+        # TODO: This needs to be refactored..
         if os.path.isfile(self.zip_file.path):
-            try:
-                # TODO: implement try-except here
-                zip = zipfile.ZipFile(self.zip_file.path)
-                bad_file = zip.testzip()
-                if bad_file:
-                    raise Exception('"%s" in the .zip archive is corrupt.' % bad_file)
-                count = 1
-                if self.gallery:
-                    gallery = self.gallery
-                else:
-                    gallery = Gallery.objects.create(title=self.title,
-                                                     title_slug=slugify(self.title),
-                                                     description=self.description,)
-                from cStringIO import StringIO
-                for filename in sorted(zip.namelist()):
-                    if filename.startswith('__'): # do not process meta files
-                        continue
-                    data = zip.read(filename)
-                    if len(data):
+            zip = zipfile.ZipFile(self.zip_file.path)
+            bad_file = zip.testzip()
+            if bad_file:
+                raise Exception('"%s" in the .zip archive is corrupt.' % bad_file)
+            count = 1
+            if self.gallery:
+                gallery = self.gallery
+            else:
+                gallery = Gallery.objects.create(title=self.title,
+                                                 slug=slugify(self.title),
+                                                 description=self.description,)
+
+            for filename in sorted(zip.namelist()):
+                if filename.startswith('__'): # do not process meta files
+                    continue
+                data = zip.read(filename)
+                if len(data):
+                    while 1:
+                        _title = ' '.join([self.title, str(count)])
+                        _slug = self.slug+"_"+str(count)
                         try:
-                            # the following is taken from django.newforms.fields.ImageField:
-                            #  load() is the only method that can spot a truncated JPEG,
-                            #  but it cannot be called sanely after verify()
-                            trial_image = Image.open(StringIO(data))
-                            trial_image.load()
-                            # verify() is the only method that can spot a corrupt PNG,
-                            #  but it must be called immediately after the constructor
-                            trial_image = Image.open(StringIO(data))
-                            trial_image.verify()
-                        except Exception:
-                            # if a "bad" file is found we just skip it.
-                            count+=1
-                            continue
-                        while 1:
-                            _title = ' '.join([self.title, str(count)])
-                            _slug = self.slug+"_"+str(count)
-                            try:
-                                p = Photo.objects.get(slug=_slug)
-                            except Photo.DoesNotExist:
-                                print(_slug)
-                                photo = Photo(title=_title,
-                                              slug=_slug,
-                                              caption=self.caption,
-                                              is_visible=self.visible,
-                                              gallery=self.gallery,)
-                                #img= Image.open(StringIO(data))
-                                photo.image.save(filename,ContentFile(data))
-                                #gallery.photos.add(photo)
-                                count +=1
-                                break
+                            p = Photo.objects.get(slug=_slug)
+                        except Photo.DoesNotExist:
+                            photo = Photo(title=_title,
+                                          slug=_slug,
+                                          caption=self.caption,
+                                          is_visible=self.visible,
+                                          gallery=self.gallery,)
+                            photo.image.save(filename, ContentFile(data))
                             count +=1
-                zip.close()
-                os.remove(self.zip_file.path)
-                return gallery
-            except:
-                os.remove(self.zip_file.path)
+                            break
+                        count +=1
+            zip.close()
+            os.remove(self.zip_file.path)
+            return gallery
 
 
     class Meta:
