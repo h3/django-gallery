@@ -3,13 +3,15 @@ from gallery.models import Gallery, Photo, Zip
 
 
 class GalleryTrans(TranslationOptions):
-    fields = ('title','description' )
+    fields = ('title', 'description',)
 translator.register(Gallery, GalleryTrans)
 
+
 class PhotoTrans(TranslationOptions):
-    fields = ('title','caption',)
-translator.register(Photo,PhotoTrans)
+    fields = ('title', 'caption',)
+translator.register(Photo, PhotoTrans)
+
 
 class ZipTrans(TranslationOptions):
-    fields = ('title','description','caption')
-translator.register(Zip,ZipTrans)
+    fields = ('title', 'description', 'caption',)
+translator.register(Zip, ZipTrans)

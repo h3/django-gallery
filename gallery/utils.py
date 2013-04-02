@@ -1,6 +1,6 @@
-import os, unicodedata
+import os
+import unicodedata
 
-from django.contrib import admin
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import mark_safe
@@ -21,11 +21,15 @@ class AdminThumbnailMixin(object):
     def _thumb(self, image, options={'size': (60, 60)}, alt=None):
         media = getattr(settings, 'THUMBNAIL_MEDIA_URL', settings.MEDIA_URL)
         attrs = []
+
         try:
-            src = "%s%s" % (media, get_thumbnailer(image).get_thumbnail(options))
+            thumb = get_thumbnailer(image).get_thumbnail(options)
+            src = "%s%s" % (media, thumb)
         except InvalidImageFormatError:
             src = self.thumbnail_404
-        if alt is not None: attrs.append('alt="%s"' % alt)
+
+        if alt is not None:
+            attrs.append('alt="%s"' % alt)
 
         return mark_safe('<img src="%s" %s />' % (src, " ".join(attrs)))
 
@@ -33,7 +37,8 @@ class AdminThumbnailMixin(object):
         kwargs = {'options': self.thumbnail_options}
         if self.thumbnail_alt_field_name:
             kwargs['alt'] = getattr(obj, self.thumbnail_alt_field_name)
-        return self._thumb(getattr(obj, self.thumbnail_image_field_name), **kwargs)
+        return self._thumb(getattr(obj,\
+                self.thumbnail_image_field_name), **kwargs)
     thumbnail.allow_tags = True
     thumbnail.short_description = _('Thumbnail')
 
@@ -48,7 +53,8 @@ def file_cleanup(sender, **kwargs):
 
     >>> from django.db.models.signals import post_delete
 
-    >>> post_delete.connect(file_cleanup, sender=MyModel, dispatch_uid="mymodel.file_cleanup")
+    >>> post_delete.connect(file_cleanup, sender=MyModel,\
+            dispatch_uid="mymodel.file_cleanup")
     """
     for fieldname in sender._meta.get_all_field_names():
         try:
@@ -60,7 +66,8 @@ def file_cleanup(sender, **kwargs):
             f = getattr(inst, fieldname)
             m = inst.__class__._default_manager
             if hasattr(f, 'path') and os.path.exists(f.path) \
-                and not m.filter(**{'%s__exact' % fieldname: getattr(inst, fieldname)})\
+                and not m.filter(**{\
+                    '%s__exact' % fieldname: getattr(inst, fieldname)})\
                 .exclude(pk=inst._get_pk_val()):
                     try:
                         #os.remove(f.path)
@@ -81,7 +88,6 @@ class ASCIISafeFileSystemStorage(FileSystemStorage):
     """
 
     def get_valid_name(self, name):
-        name = unicodedata.normalize('NFKD', unicode(name.replace(' ', '_'))).encode('ascii', 'ignore')
+        name = unicodedata.normalize('NFKD',\
+                unicode(name.replace(' ', '_'))).encode('ascii', 'ignore')
         return super(ASCIISafeFileSystemStorage, self).get_valid_name(name)
-
-
