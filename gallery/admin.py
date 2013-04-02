@@ -47,7 +47,10 @@ class GalleryAdmin(BaseClass):
     date_hierarchy = 'date_created'
 
     def get_photo_count(self, inst):
-        return len(inst.photo_set.all())
+        count = len(inst.photo_set.all())
+        link = '<a href="../photo/?gallery__id__exact=%d">%d</a>'
+        return link % (inst.pk, count)
+    get_photo_count.allow_tags = True
     get_photo_count.short_description = _('Photos')
 
 admin.site.register(Gallery, GalleryAdmin)
