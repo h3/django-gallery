@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-08-24 14:53-0400\n"
+"POT-Creation-Date: 2013-04-01 22:37-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,97 +18,103 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1)\n"
 
-#: admin.py:48 models.py:83
+#: admin.py:50 models.py:123
 msgid "Photos"
 msgstr "Photos"
 
-#: admin.py:64
+#: admin.py:70
 msgid "No photo"
 msgstr "Aucune photo"
 
-#: admin.py:66 models.py:49 models.py:82
+#: admin.py:72 models.py:60 models.py:122
 msgid "Photo"
 msgstr "Photo"
 
-#: models.py:21 models.py:92
-msgid "Title"
-msgstr "Titre"
-
-#: models.py:22 models.py:50 models.py:93
-msgid "Slug"
-msgstr "Slug"
-
-#: models.py:22 models.py:50 models.py:93
+#: models.py:14
 msgid "A \"slug\" is a unique URL-friendly title for an object."
 msgstr "Un \"Slug\" est un titre unique à un URL pour désigner un objet"
 
-#: models.py:23 models.py:94
-msgid "Description"
-msgstr "Description"
-
-#: models.py:24 models.py:96
-msgid "Is visible"
-msgstr "Est visible"
-
-#: models.py:24
+#: models.py:15
 msgid "If true, the gallery will be displayed on the website"
 msgstr "Si coché, la photo sera affiché sur le site"
 
-#: models.py:25 models.py:55
-msgid "Date created"
-msgstr "Date de création"
-
-#: models.py:44
-msgid "Gallery"
-msgstr "Galerie"
-
-#: models.py:45 templates/gallery/photo_detail.html:42
-msgid "Galleries"
-msgstr "Galeries"
-
-#: models.py:51 models.py:95
-msgid "Caption"
-msgstr "Légende"
-
-#: models.py:53
-msgid "Image"
-msgstr "Image"
-
-#: models.py:54
-msgid "Visible on website"
-msgstr "Visible sur le site"
-
-#: models.py:92
-msgid ""
-"All photos in the gallery will be given a title made up of the gallery title "
-"+ a sequential number."
+#: models.py:16
+msgid "All photos in the gallery will be given a title made "
 msgstr ""
-"Tout les photo dans la galeries auront le titre fournis dans ce champs"
-"suivis d'un numéro séquentiel."
+"Tout les photo dans la galeries auront le titre fournis dans ce champs suivis "
+"d'un numéro séquentiel."
 
-#: models.py:96
-msgid "If true, the photo will be display in de view"
-msgstr "Si vrais, la photo sera affiché dans la vue"
-
-#: models.py:97
-msgid "Select the gallery that the Photo have to be link "
-msgstr "Selectionnez la galerie avec laquelle la photo doit être liée"
-
-#: models.py:98
-msgid "images file (.zip)"
-msgstr "Archive d'images (.zip)"
-
-#: models.py:98
+#: models.py:18
 msgid "Select a .zip file of images to upload into a new Gallery."
 msgstr "Sélectionner un fichier .zip contenant des images"
 
-#: models.py:167
+#: models.py:22 models.py:134
+msgid "Title"
+msgstr "Titre"
+
+#: models.py:25 models.py:62 models.py:137
+msgid "Slug"
+msgstr "Slug"
+
+#: models.py:28 models.py:140
+msgid "Description"
+msgstr "Description"
+
+#: models.py:29 models.py:68
+msgid "Weight"
+msgstr "Poids"
+
+#: models.py:31 models.py:144
+msgid "Is visible"
+msgstr "Est visible"
+
+#: models.py:34 models.py:69
+msgid "Date created"
+msgstr "Date de création"
+
+#: models.py:55
+msgid "Gallery"
+msgstr "Galerie"
+
+#: models.py:56 templates/gallery/photo_detail.html:42
+msgid "Galleries"
+msgstr "Galeries"
+
+#: models.py:64 models.py:142
+msgid "Caption"
+msgstr "Légende"
+
+#: models.py:66
+msgid "Image"
+msgstr "Image"
+
+#: models.py:67
+msgid "Visible on website"
+msgstr "Visible sur le site"
+
+#: models.py:145
+msgid "If true, the photo will be display in de view"
+msgstr "Si vrais, la photo sera affiché dans la vue"
+
+#: models.py:148
+msgid "Select the gallery that the Photo have to be link "
+msgstr "Selectionnez la galerie avec laquelle la photo doit être liée"
+
+#: models.py:150
+msgid "images file (.zip)"
+msgstr "Archive d'images (.zip)"
+
+#: models.py:202
 msgid "Zip photo upload"
 msgstr "Upload de fichier zip"
 
-#: models.py:168
+#: models.py:203
 msgid "Zip photo uploads"
 msgstr "Upload de fichiers zip"
+
+#: utils.py:38
+msgid "Thumbnail"
+msgstr "Miniature"
 
 #: templates/gallery/gallery_detail.html:4
 #: templates/gallery/gallery_detail.html:23

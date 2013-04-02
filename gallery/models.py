@@ -26,6 +26,7 @@ class Gallery(models.Model):
             max_length=settings.NAME_FIELD_MAX_LENGTH, unique=True)
 
     description = models.TextField(_('Description'), blank=True)
+    weight = models.IntegerField(_('Weight'), default=-1)
 
     is_visible = models.BooleanField(_('Is visible'), default=True,\
             help_text=HELP_VISIBLE)
@@ -39,15 +40,18 @@ class Gallery(models.Model):
         return reverse('gallery-detail', args=[self.slug])
 
     def __unicode__(self):
+        # TODO: loop through available languages
         if self.title:
             return u'%s' % self.title
         elif hasattr(self, 'title_fr') and self.title_fr:
             return u'%s' % self.title_fr
         elif hasattr(self, 'title_en') and self.title_en:
             return u'%s' % self.title_en
+        else:
+            return u''
 
     class Meta:
-        ordering = ('date_created',)
+        ordering = ('weight', 'date_created', '-id',)
         verbose_name = _('Gallery')
         verbose_name_plural = _('Galleries')
 
@@ -103,15 +107,18 @@ class Photo(models.Model):
             return None
 
     def __unicode__(self):
+        # TODO: loop through available languages
         if self.title:
             return u'%s' % self.title
         elif hasattr(self, 'title_fr') and self.title_fr:
             return u'%s' % self.title_fr
         elif hasattr(self, 'title_en') and self.title_en:
             return u'%s' % self.title_en
+        else:
+            return u''
 
     class Meta:
-        ordering = ('date_created', '-id',)
+        ordering = ('weight', 'date_created', '-id',)
         verbose_name = _('Photo')
         verbose_name_plural = _('Photos')
         get_latest_by = 'date_created'

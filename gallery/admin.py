@@ -5,7 +5,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 from easy_thumbnails.files import get_thumbnailer
-from gallery.models import *
+from gallery.models import Gallery, Photo, Zip
 from gallery.conf import settings
 
 try:
@@ -15,7 +15,8 @@ try:
     StackedBaseClass = TranslationStackedInline
 except:
     try:
-        from modeltranslation.admin import TranslationAdmin, TranslationStackedInline
+        from modeltranslation.admin import TranslationAdmin,\
+                                            TranslationStackedInline
         BaseClass = TranslationAdmin
         StackedBaseClass = TranslationStackedInline
     except:
@@ -27,6 +28,7 @@ def admin_photo_thumbnail(source):
     thumbnail_options = dict(size=(80, 80), crop='smart')
     return get_thumbnailer(source).get_thumbnail(thumbnail_options)
 
+
 class PhotoAdminInline(StackedBaseClass):
     model = Photo
     extra = 1
@@ -36,7 +38,8 @@ class PhotoAdminInline(StackedBaseClass):
 
 
 class GalleryAdmin(BaseClass):
-    list_display = ('__unicode__', 'get_photo_count', 'date_created')
+    list_display = ('__unicode__', 'get_photo_count', 'date_created', 'weight')
+    list_editable = ('weight',)
     search_fields = ('title', 'description')
     prepopulated_fields = {'slug': ('title',)}
     inlines = [PhotoAdminInline, ]
@@ -51,7 +54,9 @@ admin.site.register(Gallery, GalleryAdmin)
 
 
 class PhotoAdmin(BaseClass):
-    list_display = ('__unicode__', 'date_created', 'gallery', 'get_admin_photo')
+    list_display = ('__unicode__', 'date_created', 'gallery', 'weight',\
+                    'get_admin_photo')
+    list_editable = ('weight',)
     list_filter = ('gallery', 'is_visible')
     search_fields = ('title', 'caption')
     prepopulated_fields = {'slug': ('title',)}
@@ -59,7 +64,9 @@ class PhotoAdmin(BaseClass):
 
     def get_admin_photo(self, inst):
         if inst.image:
-            return mark_safe('<img src="%s%s" />' % (settings.THUMBNAIL_MEDIA_URL, admin_photo_thumbnail(inst.image)))
+            src = (settings.THUMBNAIL_MEDIA_URL,\
+                    admin_photo_thumbnail(inst.image))
+            return mark_safe('<img src="%s%s" />' % src)
         else:
             return _('No photo')
     get_admin_photo.allow_tags = True
@@ -67,7 +74,8 @@ class PhotoAdmin(BaseClass):
 
 admin.site.register(Photo, PhotoAdmin)
 
+
 class ZipAdmin(admin.ModelAdmin):
     list_display = ('title', 'slug')
     prepopulated_fields = {'slug': ('title',)}
-admin.site.register(Zip,ZipAdmin)
+admin.site.register(Zip, ZipAdmin)
