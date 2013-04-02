@@ -1,11 +1,9 @@
 import os
 import zipfile
-import Image
 import shutil
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from django.utils.encoding import smart_str, force_unicode
 from django.core.urlresolvers import reverse
 from django.core.files.base import ContentFile
 from django.template.defaultfilters import slugify
@@ -13,12 +11,25 @@ from django.template.defaultfilters import slugify
 from gallery.conf import settings
 from easy_thumbnails.files import get_thumbnailer
 
+HELP_SLUG = _('A "slug" is a unique URL-friendly title for an object.')
+HELP_VISIBLE = _('If true, the gallery will be displayed on the website')
+HELP_ZIP_TITLE = _('All photos in the gallery will be given a title made ' +\
+                    'up of the gallery title + a sequential number.')
+HELP_ZIP_FILE = _('Select a .zip file of images to upload into a new Gallery.')
+
 
 class Gallery(models.Model):
-    title = models.CharField(_('Title'), max_length=settings.NAME_FIELD_MAX_LENGTH, unique=True)
-    slug = models.SlugField(_('Slug'), max_length=settings.NAME_FIELD_MAX_LENGTH, unique=True, help_text=_('A "slug" is a unique URL-friendly title for an object.'))
+    title = models.CharField(_('Title'),\
+            max_length=settings.NAME_FIELD_MAX_LENGTH, unique=True)
+
+    slug = models.SlugField(_('Slug'), help_text=HELP_SLUG,
+            max_length=settings.NAME_FIELD_MAX_LENGTH, unique=True)
+
     description = models.TextField(_('Description'), blank=True)
-    is_visible = models.BooleanField(_('Is visible'), default=True, help_text=_('If true, the gallery will be displayed on the website'))
+
+    is_visible = models.BooleanField(_('Is visible'), default=True,\
+            help_text=HELP_VISIBLE)
+
     date_created = models.DateTimeField(_('Date created'), auto_now_add=True)
 
     def get_random_photos(self):
@@ -35,7 +46,6 @@ class Gallery(models.Model):
         elif hasattr(self, 'title_en') and self.title_en:
             return u'%s' % self.title_en
 
-
     class Meta:
         ordering = ('date_created',)
         verbose_name = _('Gallery')
@@ -43,12 +53,15 @@ class Gallery(models.Model):
 
 
 class Photo(models.Model):
-    title      = models.CharField(_('Photo'),max_length=settings.NAME_FIELD_MAX_LENGTH, unique=True)
-    slug       = models.SlugField(_('Slug'),max_length=settings.NAME_FIELD_MAX_LENGTH, unique=True, help_text=_('A "slug" is a unique URL-friendly title for an object.'))
-    caption    = models.TextField(_('Caption'), blank=True)
-    gallery    = models.ForeignKey(Gallery, null=True, blank=True)
-    image      = models.ImageField(_('Image'), upload_to=settings.STORAGE_PATH)
+    title = models.CharField(_('Photo'),\
+            max_length=settings.NAME_FIELD_MAX_LENGTH, unique=True)
+    slug = models.SlugField(_('Slug'), help_text=HELP_SLUG,\
+            max_length=settings.NAME_FIELD_MAX_LENGTH, unique=True)
+    caption = models.TextField(_('Caption'), blank=True)
+    gallery = models.ForeignKey(Gallery, null=True, blank=True)
+    image = models.ImageField(_('Image'), upload_to=settings.STORAGE_PATH)
     is_visible = models.BooleanField(_('Visible on website'), default=True)
+    weight = models.IntegerField(_('Weight'), default=-1)
     date_created = models.DateTimeField(_('Date created'), auto_now_add=True)
 
     def save(self, *args, **kwargs):
@@ -57,28 +70,35 @@ class Photo(models.Model):
             img = open(self.image.path)
             thumbnailer = get_thumbnailer(img, relative_name=self.image.name)
             if type(settings.SOURCE_RESIZE) is tuple:
-                thumbnail_options = {'size': settings.SOURCE_RESIZE, 'save': True}
+                thumbnail_options = {
+                    'size': settings.SOURCE_RESIZE,
+                    'save': True,
+                }
             else:
                 thumbnail_options = settings.SOURCE_RESIZE
-            
+
             thumb = thumbnailer.get_thumbnail(thumbnail_options)
             # Ok children, it's bed time
             dest = self.image.path
-            os.remove(dest) #  This is to make sure we leave nothing behind (ex: filename changes)
+            # This is to make sure we leave nothing behind
+            os.remove(dest)
             shutil.move(thumb.path, dest)
 
     def get_absolute_url(self):
-        return reverse('gallery-photo-detail', args=[self.gallery.slug, self.slug])
+        return reverse('gallery-photo-detail',\
+                args=[self.gallery.slug, self.slug])
 
     def get_previous_in_gallery(self):
         try:
-            return self.get_previous_by_date_created(gallery__exact=self.gallery, is_visible=True)
+            return self.get_previous_by_date_created(\
+                    gallery__exact=self.gallery, is_visible=True)
         except Photo.DoesNotExist:
             return None
 
     def get_next_in_gallery(self):
         try:
-            return self.get_next_by_date_created(gallery__exact=self.gallery, is_visible=True)
+            return self.get_next_by_date_created(\
+                    gallery__exact=self.gallery, is_visible=True)
         except Photo.DoesNotExist:
             return None
 
@@ -99,20 +119,33 @@ class Photo(models.Model):
 if settings.AUTO_CLEANUP:
     from django.db.models.signals import post_delete
     from gallery.utils import file_cleanup
-    post_delete.connect(file_cleanup, sender=Photo, dispatch_uid="photo.file_cleanup")
+    post_delete.connect(file_cleanup, sender=Photo,\
+            dispatch_uid="photo.file_cleanup")
 
 
 class Zip(models.Model):
-    title = models.CharField(_('Title'), max_length=75, help_text=_('All photos in the gallery will be given a title made up of the gallery title + a sequential number.'))
-    slug = models.CharField(_('Slug'),max_length=settings.NAME_FIELD_MAX_LENGTH, unique=True, help_text=_('A "slug" is a unique URL-friendly title for an object.'))
+    title = models.CharField(_('Title'), max_length=75,\
+            help_text=HELP_ZIP_TITLE)
+
+    slug = models.CharField(_('Slug'), unique=True, help_text=HELP_SLUG,
+            max_length=settings.NAME_FIELD_MAX_LENGTH)
+
     description = models.TextField(_('Description'), blank=True)
+
     caption = models.TextField(_('Caption'), blank=True)
-    visible = models.BooleanField(_('Is visible'), default=True, help_text=_('If true, the photo will be display in de view'))
-    gallery = models.ForeignKey(Gallery, null=True, blank=True, help_text=_('Select the gallery that the Photo have to be link '))
-    zip_file = models.FileField(_('images file (.zip)'), upload_to=settings.STORAGE_PATH+"/tmp",help_text=_('Select a .zip file of images to upload into a new Gallery.'))
+
+    visible = models.BooleanField(_('Is visible'), default=True,\
+            help_text=_('If true, the photo will be display in de view'))
+
+    gallery = models.ForeignKey(Gallery, null=True, blank=True,\
+            help_text=_('Select the gallery that the Photo have to be link '))
+
+    zip_file = models.FileField(_('images file (.zip)'),\
+            upload_to=settings.STORAGE_PATH + "/tmp",\
+            help_text=HELP_ZIP_FILE)
 
     def save(self, *args, **kwargs):
-        super(Zip, self).save(*args, **kwargs) 
+        super(Zip, self).save(*args, **kwargs)
         gallery = self.process_zipfile()
         super(Zip, self).delete()
         return gallery
@@ -123,7 +156,8 @@ class Zip(models.Model):
             zip = zipfile.ZipFile(self.zip_file.path)
             bad_file = zip.testzip()
             if bad_file:
-                raise Exception('"%s" in the .zip archive is corrupt.' % bad_file)
+                raise Exception(\
+                        '"%s" in the .zip archive is corrupt.' % bad_file)
             count = 1
             if self.gallery:
                 gallery = self.gallery
@@ -133,15 +167,16 @@ class Zip(models.Model):
                                                  description=self.description,)
 
             for filename in sorted(zip.namelist()):
-                if filename.startswith('__'): # do not process meta files
+                if filename.startswith('__'):  # do not process meta files
                     continue
                 data = zip.read(filename)
                 if len(data):
                     while 1:
                         _title = ' '.join([self.title, str(count)])
-                        _slug = self.slug+"_"+str(count)
+                        _slug = self.slug + "_" + str(count)
                         try:
-                            p = Photo.objects.get(slug=_slug)
+                            # TODO: handle existing images better than this..
+                            Photo.objects.get(slug=_slug)
                         except Photo.DoesNotExist:
                             photo = Photo(title=_title,
                                           slug=_slug,
@@ -149,13 +184,12 @@ class Zip(models.Model):
                                           is_visible=self.visible,
                                           gallery=self.gallery,)
                             photo.image.save(filename, ContentFile(data))
-                            count +=1
+                            count += 1
                             break
-                        count +=1
+                        count += 1
             zip.close()
             os.remove(self.zip_file.path)
             return gallery
-
 
     class Meta:
         verbose_name = _('Zip photo upload')
